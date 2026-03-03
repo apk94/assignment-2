@@ -19,15 +19,15 @@ class Armin():
     def apriori(self, input_filename, output_filename, min_support_percentage, min_confidence):
         transactions = [] 
         try:
-            with open('input filename, 'r') as f: 
+            with open(input_filename, 'r') as f: 
                 reader = csv.reader(f) 
                 for row in reader: 
                     if not row: 
                         continue
-                items = [x.strip() for x  in row[1:] if x.strip()]
-                if items: 
-                transactions.append(set(items))
-         except FileNotFoundError:
+                    items = [x.strip() for x  in row[1:] if x.strip()]
+                    if items: 
+                        transactions.append(set(items))
+        except FileNotFoundError:
             print(f"Error: {input_filename} not found.")
             return
 
@@ -36,63 +36,63 @@ class Armin():
             return
         frequent_items = {}
 
-        items_count = defaultdict(int)
+        item_counts = defaultdict(int)
         for transaction in transactions: 
             for item in transaction: 
-                item_counts[([item])] += 1
+                item_counts[(item,)] += 1
         frequent_current = {} 
 
-        for itemset, count in item_count.items(): 
+        for itemset, count in item_counts.items(): 
             support = count / total_transactions 
             if support >= min_support_percentage: 
                frequent_current[tuple(sorted(itemset))] = support
-        frequent_items.update(frequent_items)
+        frequent_items.update(frequent_current)
 
         k=2
         while frequent_current: 
-             candidate = set()
-             previous_items = list(frequent_current.keys())
-       
+            candidates = set()
+            previous_items = list(frequent_current.keys())
+
             for i in range(len(previous_items)):
                 for j in range(i + 1, len(previous_items)):
-                    union = tuple(sorted(set(prev_itemsets[i]) |
-                                         set(prev_itemsets[j])))
+                    union = tuple(sorted(set(previous_items[i]) |
+                                         set(previous_items[j])))
                     if len(union) == k:
                         candidates.add(union)
             next_items = {}
 
-            for candidates in candidates: 
+            for cand in candidates: 
                 subsets = list(it.combinations(cand, k - 1))
                 valid = True
                 for s in subsets:
-                    if tuple(sorted(s)) not in current_l:
+                    if tuple(sorted(s)) not in frequent_current:
                         valid = False
                         break
                 if not valid: 
                     continue 
 
-                candidate_set = set(candidate)
+                cand_set = set(cand)
                 count = 0 
                 for t in transactions: 
-                    if candidate_set.issubset(t): 
+                    if cand_set.issubset(t): 
                         count += 1
                 support = count / total_transactions
                
                 if support >= min_support_percentage: 
-                    next_items[candidates] = support 
+                    next_items[cand] = support 
          
             if not next_items: 
                 break 
 
             frequent_items.update(next_items)
-            current_items = next_items
+            frequent_current = next_items
             k += 1
 
         rules = [] 
-        for items, support in frequent_items.items(): 
-            if len(items) < 2: 
+        for itemset, support in frequent_items.items():
+            if len(itemset) < 2:
                 continue 
-            for i in range(1, len(items)): 
+            for i in range(1, len(itemset)): 
                  for lhs_tuple in it.combinations(itemset, i):
 
                     lhs = tuple(sorted(lhs_tuple))
@@ -105,14 +105,28 @@ class Armin():
 
                     confidence = support / lhs_support 
 
-                    if confidence >= min_confidence 
+                    if confidence >= min_confidence:
                         rules.append((support, confidence, lhs, rhs))
 
         with open(output_filename, 'w', newline='') as f: 
             writer = csv.writer(f)
-            items_list = list(frequent_items.items())
-            items_list.sort(key=len)
-            items_list = sort()
+            itemset_list = list(frequent_items.items())
+            # First lexicographic
+            itemset_list.sort()
+
+            # Then group by size manually
+            sorted_by_size = []
+            max_size = 0
+            for itemset, _ in itemset_list:
+                if len(itemset) > max_size:
+                    max_size = len(itemset)
+
+            for size in range(1, max_size + 1):
+                for item in itemset_list:
+                    if len(item[0]) == size:
+                        sorted_by_size.append(item)
+
+            itemset_list = sorted_by_size
 
             for itemset, support in itemset_list:
                 row = ["S", "{:.4f}".format(support)]
@@ -122,7 +136,7 @@ class Armin():
 
 
             rules.sort()
-            for support, confidence, lhs, rhs in rules 
+            for support, confidence, lhs, rhs in rules:
                 row = ["R",
                        "{:.4f}".format(support),
                        "{:.4f}".format(confidence)]
@@ -138,8 +152,6 @@ class Armin():
                 writer.writerow(row)
 
 
-    
-        pass
 
 if __name__ == "__main__":
     armin = Armin()
@@ -147,3 +159,4 @@ if __name__ == "__main__":
     armin.apriori('input.csv', 'output.sup=0.5,conf=0.8.csv', 0.5, 0.8)
 
     armin.apriori('input.csv', 'output.sup=0.6,conf=0.8.csv', 0.6, 0.8)
+

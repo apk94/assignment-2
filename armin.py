@@ -111,10 +111,8 @@ class Armin():
         with open(output_filename, 'w', newline='') as f: 
             writer = csv.writer(f)
             itemset_list = list(frequent_items.items())
-            # First lexicographic
             itemset_list.sort()
 
-            # Then group by size manually
             sorted_by_size = []
             max_size = 0
             for itemset, _ in itemset_list:
@@ -144,7 +142,7 @@ class Armin():
                 for item in lhs: 
                     row.append(item)
 
-                row.append("=>")  
+                row.append("'=>'")  
 
                 for item in rhs: 
                     row.append(item)
@@ -159,6 +157,7 @@ if __name__ == "__main__":
     armin.apriori('input.csv', 'output.sup=0.5,conf=0.8.csv', 0.5, 0.8)
 
     armin.apriori('input.csv', 'output.sup=0.6,conf=0.8.csv', 0.6, 0.8)
+
 
 
 
